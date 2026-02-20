@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação de Usabilidade - Repositórios de Dados de Pesquisa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px 40px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            padding: 20px 40px 0 40px;
+            gap: 10px;
+            border-bottom: 3px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: #f0f0f0;
+            transform: translateY(-3px);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-5px);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .repo-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .repo-header h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .repo-header .url {
+            font-size: 0.9em;
+            opacity: 0.9;
+            word-break: break-all;
+        }
+
+        .repo-header .platform {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 0.85em;
+        }
+
+        .criteria-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .criteria-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .criteria-table th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .criteria-table td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+
+        .criteria-table tbody tr {
+            background: white;
+            transition: background 0.3s ease;
+        }
+
+        .criteria-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .criteria-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .criteria-id {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+            width: 60px;
+            text-align: center;
+        }
+
+        .criteria-name {
+            font-weight: 600;
+            color: #333;
+            width: 200px;
+        }
+
+        .impact {
+            font-weight: 600;
+            width: 250px;
+        }
+
+        .impact.excellent {
+            color: #28a745;
+        }
+
+        .impact.good {
+            color: #17a2b8;
+        }
+
+        .impact.limited {
+            color: #ffc107;
+        }
+
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .legend-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .comparison-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .comparison-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 1200px;
+            margin: 20px auto;
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.85em;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .comparison-table td {
+            padding: 12px 8px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .comparison-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                padding: 10px 20px 0 20px;
+            }
+
+            .tab {
+                padding: 12px 15px;
+                font-size: 0.85em;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            .criteria-table {
+                font-size: 0.85em;
+            }
+
+            .comparison-btn {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 20px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        .score-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .score-badge.warning {
+            background: #ffc107;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Avaliação de Usabilidade</h1>
+            <p>Repositórios de Dados de Pesquisa - América Latina</p>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <span class="stat-number">8</span>
+                <span class="stat-label">Repositórios Avaliados</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">9</span>
+                <span class="stat-label">Critérios de Usabilidade</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">87.5%</span>
+                <span class="stat-label">Usam Dataverse</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">100%</span>
+                <span class="stat-label">Suportam DOI</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="openTab(event, 'unr')">UNR</div>
+            <div class="tab" onclick="openTab(event, 'redu')">REDU</div>
+            <div class="tab" onclick="openTab(event, 'arca')">Arca Dados</div>
+            <div class="tab" onclick="openTab(event, 'cimmyt')">CIMMYT</div>
+            <div class="tab" onclick="openTab(event, 'unlp')">UNLP</div>
+            <div class="tab" onclick="openTab(event, 'aleia')">Aleia</div>
+            <div class="tab" onclick="openTab(event, 'udesc')">UDESC</div>
+            <div class="tab" onclick="openTab(event, 'redata')">REDATA</div>
+        </div>
+
+        <!-- UNR -->
+        <div id="unr" class="tab-content active">
+            <div class="repo-header">
+                <h2>🇦🇷 UNR - Universidad Nacional de Rosario <span class="score-badge">9/9</span></h2>
+                <div class="url">🔗 https://dataverse.unr.edu.ar/</div>
+                <span class="platform">📦 Plataforma: Dataverse 6.0+</span>
+            </div>
+
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Critério</th>
+                        <th>Observação</th>
+                        <th>Impacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="criteria-id">1</td>
+                        <td class="criteria-name">Mecanismo de Busca</td>
+                        <td>Sim. Barra de busca central no cabeçalho. Oferece busca simples e 'Advanced Search' que aceita termos simples e booleanos.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">2</td>
+                        <td class="criteria-name">Navegação Facetada</td>
+                        <td>Sim. Filtros bem estruturados: Dataverse Category, Publication Year, Author Name, Subject (Medicine, Social Sciences), Keyword Term e Deposit Date.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">3</td>
+                        <td class="criteria-name">Políticas de Uso</td>
+                        <td>Sim. Link visível para 'Términos de uso de datos' que redireciona para diretrizes institucionais.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">4</td>
+                        <td class="criteria-name">Documentação de Apoio</td>
+                        <td>Sim. Disponibiliza 'User Guide' acessível no menu superior sem necessidade de login.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">5</td>
+                        <td class="criteria-name">Identidade Visual</td>
+                        <td>Sim. Utiliza logotipos da UNR e de suas diversas faculdades, além de banner específico. Design moderno e atualizado.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">6</td>
+                        <td class="criteria-name">Citação de Dados</td>
+                        <td>Sim. Gera automaticamente citações padronizadas incluindo autores, ano, título, repositório, versão e DOI.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">7</td>
+                        <td class="criteria-name">Metadados Prévios</td>
+                        <td>Sim. Exibe resumos (Introdução/Resumen), autores, data de publicação diretamente nos resultados de busca.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">8</td>
+                        <td class="criteria-name">Identificadores (DOI)</td>
+                        <td>Sim. DOI com prefixo 10.57715/UNR/. Visível, clicável e redireciona corretamente.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">9</td>
+                        <td class="criteria-name">Internacionalização</td>
+                        <td>Sim. Interface bilíngue: English e Español.</td>
+                        <td class="impact good">✅ Bom</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- REDU -->
+        <div id="redu" class="tab-content">
+            <div class="repo-header">
+                <h2>🇧🇷 REDU - UNICAMP <span class="score-badge">9/9</span></h2>
+                <div class="url">🔗 https://redu.unicamp.br/</div>
+                <span class="platform">📦 Plataforma: Dataverse 5.13</span>
+            </div>
+
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Critério</th>
+                        <th>Observação</th>
+                        <th>Impacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="criteria-id">1</td>
+                        <td class="criteria-name">Mecanismo de Busca</td>
+                        <td>Sim. Campo de busca simples na barra de navegação e 'Advanced Search' para refinamento.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">2</td>
+                        <td class="criteria-name">Navegação Facetada</td>
+                        <td>Sim. Filtros por tipo (Dataverses, Datasets, Files), Categoria, Ano, Autor, Assunto, Palavra-chave, Afiliação do Autor e Agência de Fomento.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">3</td>
+                        <td class="criteria-name">Políticas de Uso</td>
+                        <td>Sim. Define o REDU como ferramenta oficial da Unicamp para depósito, preservação e compartilhamento.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">4</td>
+                        <td class="criteria-name">Documentação de Apoio</td>
+                        <td>Sim. Oferece 'User Guide' baseado na documentação do Dataverse e link de 'Support'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">5</td>
+                        <td class="criteria-name">Identidade Visual</td>
+                        <td>Sim. Marca oficial da Unicamp com cabeçalho estruturado e organização por áreas do conhecimento.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">6</td>
+                        <td class="criteria-name">Citação de Dados</td>
+                        <td>Sim. Formato de citação padrão incluindo autores, ano, título, DOI, repositório e versão.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">7</td>
+                        <td class="criteria-name">Metadados Prévios</td>
+                        <td>Sim. Exige preenchimento de metadados direcionando ao local de armazenamento, permitindo visualizar descrição, assunto e licença antes do download.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">8</td>
+                        <td class="criteria-name">Identificadores (DOI)</td>
+                        <td>Sim. DOI com prefixo 10.25824/redu/. Visível, clicável e redireciona corretamente.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">9</td>
+                        <td class="criteria-name">Internacionalização</td>
+                        <td>Sim. Interface em 4 idiomas: Português, Inglês, Espanhol e Francês. ⭐ Melhor internacionalização.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Arca Dados -->
+        <div id="arca" class="tab-content">
+            <div class="repo-header">
+                <h2>🇧🇷 Arca Dados - Fiocruz <span class="score-badge">9/9</span></h2>
+                <div class="url">🔗 https://arcadados.fiocruz.br/</div>
+                <span class="platform">📦 Plataforma: Dataverse 6.2</span>
+            </div>
+
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Critério</th>
+                        <th>Observação</th>
+                        <th>Impacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="criteria-id">1</td>
+                        <td class="criteria-name">Mecanismo de Busca</td>
+                        <td>Sim. Campo de busca simples no topo, opção 'Explorar' e link de 'Busca avançada'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">2</td>
+                        <td class="criteria-name">Navegação Facetada</td>
+                        <td>Sim. Categorias de 'Assunto': Medicina/Saúde (767), Ciências da Terra (682), Ciências Sociais (74), Artes e Humanidades (27), Computação (10), Ciências Agrárias (4).</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">3</td>
+                        <td class="criteria-name">Políticas de Uso</td>
+                        <td>Sim. Três documentos principais: Portaria Arca Dados, Política de gestão/compartilhamento de dados, e Política de acesso aberto.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">4</td>
+                        <td class="criteria-name">Documentação de Apoio</td>
+                        <td>Sim. 'Guia do usuário' (Dataverse v.6.2), seção 'Sobre', e canais de suporte via e-mail para curadoria e questões gerais.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">5</td>
+                        <td class="criteria-name">Identidade Visual</td>
+                        <td>Sim. Selo CTS, imagens de testeira personalizadas, ícones para iniciativas integradas (Ciência Aberta, Educare, Observatório).</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">6</td>
+                        <td class="criteria-name">Citação de Dados</td>
+                        <td>Sim. Conjuntos de dados incluem metadados descritivos seguindo princípios FAIR, com DOI e citação padronizada.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">7</td>
+                        <td class="criteria-name">Metadados Prévios</td>
+                        <td>Sim. Datasets compostos por metadados descritivos, arquivos, documentação e código, seguindo FAIR.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">8</td>
+                        <td class="criteria-name">Identificadores (DOI)</td>
+                        <td>Sim. Segue princípios FAIR (Findability, Accessibility, Interoperability, Reusability) com atribuição de DOI.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">9</td>
+                        <td class="criteria-name">Internacionalização</td>
+                        <td>Sim. Interface em três idiomas: Português, Inglês e Espanhol.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CIMMYT -->
+        <div id="cimmyt" class="tab-content">
+            <div class="repo-header">
+                <h2>🌎 CIMMYT - International <span class="score-badge">9/9</span></h2>
+                <div class="url">🔗 https://data.cimmyt.org/</div>
+                <span class="platform">📦 Plataforma: Dataverse</span>
+            </div>
+
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Critério</th>
+                        <th>Observação</th>
+                        <th>Impacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="criteria-id">1</td>
+                        <td class="criteria-name">Mecanismo de Busca</td>
+                        <td>Sim. Barra de busca destacada e opção de 'Advanced Search' para consultas refinadas.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">2</td>
+                        <td class="criteria-name">Navegação Facetada</td>
+                        <td>Sim. ⭐ MAIS COMPLETA: Dataverse Category, Publication Year, License, Author, Contributing Name, Subject, Series Name, Keyword Term, Geographic Coverage/Country, Deposit Date.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">3</td>
+                        <td class="criteria-name">Políticas de Uso</td>
+                        <td>Sim. 'Agreement for Access and Use of Data' detalhado que deve ser aceito antes do acesso, definindo direitos, restrições e responsabilidades.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">4</td>
+                        <td class="criteria-name">Documentação de Apoio</td>
+                        <td>Sim. Link direto para 'User Guide' no menu superior e opção de 'Support'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">5</td>
+                        <td class="criteria-name">Identidade Visual</td>
+                        <td>Sim. Logotipo CIMMYT proeminente, banner visual institucional (sementes milho/trigo), design profissional refletindo identidade internacional.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">6</td>
+                        <td class="criteria-name">Citação de Dados</td>
+                        <td>Sim. Citação automática padronizada incluindo autores, ano, título, DOI/Handle persistente, repositório e versão.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">7</td>
+                        <td class="criteria-name">Metadados Prévios</td>
+                        <td>Sim. Resultados exibem título, autores, data, descrição resumida, tipo de dataset e informações sobre arquivos antes do download.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">8</td>
+                        <td class="criteria-name">Identificadores (DOI)</td>
+                        <td>Sim. ⭐ DUPLO SISTEMA: DOI (prefixo 10.71682/) + Handle (https://hdl.handle.net/11529/). Visíveis, clicáveis e redirecionam corretamente.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">9</td>
+                        <td class="criteria-name">Internacionalização</td>
+                        <td>Sim. Interface em inglês com suporte a múltiplos idiomas através do menu dropdown.</td>
+                        <td class="impact good">✅ Bom</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- UNLP -->
+        <div id="unlp" class="tab-content">
+            <div class="repo-header">
+                <h2>🇦🇷 UNLP - Universidad Nacional de La Plata <span class="score-badge warning">8/9</span></h2>
+                <div class="url">🔗 https://datos.unlp.edu.ar/</div>
+                <span class="platform">📦 Plataforma: Dataverse 6.0</span>
+            </div>
+
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Critério</th>
+                        <th>Observação</th>
+                        <th>Impacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="criteria-id">1</td>
+                        <td class="criteria-name">Mecanismo de Busca</td>
+                        <td>Sim. Barra de busca centralizada e link direto para 'Explorar todo el repositorio'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">2</td>
+                        <td class="criteria-name">Navegação Facetada</td>
+                        <td>Sim. Estrutura organizada por 18 unidades acadêmicas (Presidência, Arquitetura, Artes, Ciências Agrárias, Astronomia, etc.).</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">3</td>
+                        <td class="criteria-name">Políticas de Uso</td>
+                        <td>⚠️ Parcial. Não foram identificados links explícitos para 'Terms of Use' ou 'Privacy Policy' no menu ou rodapé da página inicial.</td>
+                        <td class="impact limited">⚠️ Limitado</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">4</td>
+                        <td class="criteria-name">Documentação de Apoio</td>
+                        <td>Sim. Disponibiliza 'Guía de usuario' e seção 'Acerca de' acessíveis sem login, além de 'Contact Support'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">5</td>
+                        <td class="criteria-name">Identidade Visual</td>
+                        <td>Sim. Utiliza logotipos específicos para cada faculdade e identidade institucional da UNLP.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">6</td>
+                        <td class="criteria-name">Citação de Dados</td>
+                        <td>Sim. Baseado em Dataverse v. 6.0, que nativamente gera citações automáticas para datasets.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">7</td>
+                        <td class="criteria-name">Metadados Prévios</td>
+                        <td>Sim. Plataforma Dataverse permite visualização de metadados, descrições e estrutura antes do download.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">8</td>
+                        <td class="criteria-name">Identificadores (DOI)</td>
+                        <td>Sim. Sendo instalação Dataverse 6.0, o sistema é preparado para atribuição de identificadores persistentes DOI.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">9</td>
+                        <td class="criteria-name">Internacionalização</td>
+                        <td>Sim. Suporte bilíngue: Español e English.</td>
+                        <td class="impact good">✅ Bom</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Aleia -->
+        <div id="aleia" class="tab-content">
+            <div class="repo-header">
+                <h2>🇧🇷 Aleia - IBICT <span class="score-badge">9/9</span></h2>
+                <div class="url">🔗 https://aleia.ibict.br/</div>
+                <span class="platform">📦 Plataforma: Dataverse 6.4</span>
+            </div>
+
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Critério</th>
+                        <th>Observação</th>
+                        <th>Impacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="criteria-id">1</td>
+                        <td class="criteria-name">Mecanismo de Busca</td>
+                        <td>Sim. Menu de 'Pesquisa' e botões de exploração para conjuntos de dados, arquivos e dataverses.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">2</td>
+                        <td class="criteria-name">Navegação Facetada</td>
+                        <td>Sim. Botões de exploração redirecionam para filtros por tipos (dataverses, datasets, files) e ordenação por data.</td>
+                        <td class="impact good">✅ Bom</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">3</td>
+                        <td class="criteria-name">Políticas de Uso</td>
+                        <td>Sim. Seções 'Sobre' e 'Acesso à Informação' tratam de documentos oficiais e planos de dados abertos do Ibict/Governo Federal.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">4</td>
+                        <td class="criteria-name">Documentação de Apoio</td>
+                        <td>Sim. Disponibiliza 'Guia do usuário' e seção específica 'Aprenda como depositar seus dados no Aleia'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">5</td>
+                        <td class="criteria-name">Identidade Visual</td>
+                        <td>Sim. Utiliza logomarca própria (logo_aleia_final.png) e segue padrão visual do Governo Federal/Ibict.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">6</td>
+                        <td class="criteria-name">Citação de Dados</td>
+                        <td>Sim. Baseado em Dataverse v. 6.4, que nativamente suporta citação de dados com metadados padronizados.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">7</td>
+                        <td class="criteria-name">Metadados Prévios</td>
+                        <td>Sim. Plataforma Dataverse permite visualização de metadados descritivos antes do acesso aos arquivos.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">8</td>
+                        <td class="criteria-name">Identificadores (DOI)</td>
+                        <td>Sim. Dataverse v. 6.4 suporta nativamente atribuição de DOI (Digital Object Identifier).</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">9</td>
+                        <td class="criteria-name">Internacionalização</td>
+                        <td>Sim. Sistema oferece suporte a múltiplos idiomas: Português, Inglês e Espanhol.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- UDESC -->
+        <div id="udesc" class="tab-content">
+            <div class="repo-header">
+                <h2>🇧🇷 UDESC - Universidade do Estado de Santa Catarina <span class="score-badge">9/9</span></h2>
+                <div class="url">🔗 https://rdados.udesc.br/</div>
+                <span class="platform">📦 Plataforma: Dataverse 6.8</span>
+            </div>
+
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Critério</th>
+                        <th>Observação</th>
+                        <th>Impacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="criteria-id">1</td>
+                        <td class="criteria-name">Mecanismo de Busca</td>
+                        <td>Sim. Barra de busca simples e link para 'Advanced Search' para filtragem refinada.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">2</td>
+                        <td class="criteria-name">Navegação Facetada</td>
+                        <td>Sim. Filtros laterais incluindo 'Dataverse Category' (Teaching Course - 90, Department - 13) e 'Publication Year'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">3</td>
+                        <td class="criteria-name">Políticas de Uso</td>
+                        <td>Sim. Menciona necessidade de cadastro para adicionar dados e possui termos de 'Publish Dataverse' indicando que dados publicados devem permanecer públicos.</td>
+                        <td class="impact good">✅ Bom</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">4</td>
+                        <td class="criteria-name">Documentação de Apoio</td>
+                        <td>Sim. Link direto para 'User Guide' (documentação oficial Dataverse 6.8) e botão de 'Support'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">5</td>
+                        <td class="criteria-name">Identidade Visual</td>
+                        <td>Sim. Utiliza logotipo da UDESC e nome 'Repositório de Dados de Pesquisa da UDESC', com framework Bootstrap customizado.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">6</td>
+                        <td class="criteria-name">Citação de Dados</td>
+                        <td>Sim. Plataforma Dataverse v. 6.8 é projetada nativamente para gerar citações automáticas para cada dataset.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">7</td>
+                        <td class="criteria-name">Metadados Prévios</td>
+                        <td>Sim. Navegação mostra metadados prévios como 'Dataverse Category' e tipos de objetos (Dataverses, Datasets, Files).</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">8</td>
+                        <td class="criteria-name">Identificadores (DOI)</td>
+                        <td>Sim. Sendo instalação padrão do Dataverse v. 6.8, o sistema é preparado para atribuição de identificadores persistentes DOI.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">9</td>
+                        <td class="criteria-name">Internacionalização</td>
+                        <td>Sim. Repositório suporta múltiplos idiomas: English e Português.</td>
+                        <td class="impact good">✅ Bom</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- REDATA -->
+        <div id="redata" class="tab-content">
+            <div class="repo-header">
+                <h2>🇺🇾 REDATA - ANII Uruguai <span class="score-badge warning">8/9</span></h2>
+                <div class="url">🔗 https://redata.anii.org.uy/</div>
+                <span class="platform">📦 Plataforma: Customizada + Zenodo ⭐ ÚNICA NÃO-DATAVERSE</span>
+            </div>
+
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Critério</th>
+                        <th>Observação</th>
+                        <th>Impacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="criteria-id">1</td>
+                        <td class="criteria-name">Mecanismo de Busca</td>
+                        <td>Sim. Barra de pesquisa global e link para 'Búsqueda avanzada'.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">2</td>
+                        <td class="criteria-name">Navegação Facetada</td>
+                        <td>Sim. Permite filtrar por: Conteúdo (Coleções, Datasets, Arquivos), Tipo de coleção, Origem (REDATA/Zenodo), Ano, Licença, Áreas de conhecimento, Palavras-chave e Autores.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">3</td>
+                        <td class="criteria-name">Políticas de Uso</td>
+                        <td>Sim. Possui seção 'Sobre REDATA' (aniidv-about.html) que documenta políticas e governança do repositório.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">4</td>
+                        <td class="criteria-name">Documentação de Apoio</td>
+                        <td>Sim. Seção 'Sobre REDATA' e formulário de contato ('CONTACTO') para suporte.</td>
+                        <td class="impact good">✅ Bom</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">5</td>
+                        <td class="criteria-name">Identidade Visual</td>
+                        <td>Sim. Utiliza marca REDATA com cabeçalho padrão, menu de navegação superior e rodapé institucional com links de contato.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">6</td>
+                        <td class="criteria-name">Citação de Dados</td>
+                        <td>Sim. Sistema gera citações automáticas incluindo autores, ano, título, DOI, repositório e versão.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">7</td>
+                        <td class="criteria-name">Metadados Prévios</td>
+                        <td>Sim. Registros incluem metadados descritivos, fontes (Zenodo), datas de distribuição e termos de licença visíveis antes do download.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">8</td>
+                        <td class="criteria-name">Identificadores (DOI)</td>
+                        <td>Sim. DOI com prefixo 10.60895/redata/. Visíveis, clicáveis e redirecionam corretamente.</td>
+                        <td class="impact excellent">✅ Excelente</td>
+                    </tr>
+                    <tr>
+                        <td class="criteria-id">9</td>
+                        <td class="criteria-name">Internacionalização</td>
+                        <td>⚠️ Parcial. Interface apresentada em Espanhol, mas contém datasets com títulos em Inglês. Não foi identificado menu explícito de troca de idioma.</td>
+                        <td class="impact limited">⚠️ Limitado</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="legend">
+            <h3>📌 Legenda de Avaliação</h3>
+            <div class="legend-item">
+                <span class="legend-icon">✅</span>
+                <span><strong>Excelente:</strong> Recurso totalmente implementado e funcional</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon">✅</span>
+                <span><strong>Bom:</strong> Recurso implementado com pequenas limitações</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon">⚠️</span>
+                <span><strong>Limitado:</strong> Recurso parcialmente implementado ou não evidente</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="comparison-btn" onclick="openModal()">📊 Ver Comparação Geral</button>
+
+    <!-- Modal de Comparação -->
+    <div id="comparisonModal" class="modal" onclick="closeModalOnOutside(event)">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 style="text-align: center; color: #667eea; margin-bottom: 30px;">📊 Tabela Comparativa Geral</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Repositório</th>
+                        <th>C1<br>Busca</th>
+                        <th>C2<br>Facetas</th>
+                        <th>C3<br>Políticas</th>
+                        <th>C4<br>Doc</th>
+                        <th>C5<br>Visual</th>
+                        <th>C6<br>Citação</th>
+                        <th>C7<br>Metadados</th>
+                        <th>C8<br>DOI</th>
+                        <th>C9<br>i18n</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>🇦🇷 UNR</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td style="background: #d4edda; font-weight: bold;">9/9</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🇧🇷 REDU</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>⭐ ✅</td>
+                        <td style="background: #d4edda; font-weight: bold;">9/9</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🇧🇷 Arca Dados</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td style="background: #d4edda; font-weight: bold;">9/9</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🌎 CIMMYT</strong></td>
+                        <td>✅</td>
+                        <td>⭐ ✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>⭐ ✅</td>
+                        <td>✅</td>
+                        <td style="background: #d4edda; font-weight: bold;">9/9</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🇦🇷 UNLP</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>⚠️</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td style="background: #fff3cd; font-weight: bold;">8/9</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🇧🇷 Aleia</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td style="background: #d4edda; font-weight: bold;">9/9</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🇧🇷 UDESC</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td style="background: #d4edda; font-weight: bold;">9/9</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🇺🇾 REDATA</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>⚠️</td>
+                        <td style="background: #fff3cd; font-weight: bold;">8/9</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">🏆 Destaques</h3>
+                <ul style="line-height: 2;">
+                    <li><strong>⭐ Melhor Internacionalização:</strong> REDU-UNICAMP (4 idiomas)</li>
+                    <li><strong>⭐ Navegação Mais Completa:</strong> CIMMYT</li>
+                    <li><strong>⭐ Duplo Sistema DOI:</strong> CIMMYT (DOI + Handle)</li>
+                    <li><strong>⭐ Única Plataforma Não-Dataverse:</strong> REDATA (customizada + Zenodo)</li>
+                    <li><strong>📊 Taxa de Conformidade Geral:</strong> 97.2% (70/72 critérios)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            // Esconder todos os conteúdos
+            var tabContents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+
+            // Remover classe active de todas as abas
+            var tabs = document.getElementsByClassName("tab");
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+
+            // Mostrar o conteúdo atual e marcar a aba como ativa
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function openModal() {
+            document.getElementById("comparisonModal").style.display = "block";
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+            document.getElementById("comparisonModal").style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+
+        function closeModalOnOutside(event) {
+            if (event.target.id === "comparisonModal") {
+                closeModal();
+            }
+        }
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
