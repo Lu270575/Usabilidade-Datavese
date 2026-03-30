@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang='pt-BR'>
+<head>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1' />
+  <title>Avaliação de Usabilidade – Repositórios de Dados de Pesquisa</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --ink: #16324f;
+      --muted: #5f748a;
+      --line: #d8e2ee;
+      --blue: #1b74d1;
+      --blue-soft: #eaf3ff;
+      --green: #198754;
+      --green-soft: #e9f8f0;
+      --yellow: #b7791f;
+      --yellow-soft: #fff8e6;
+      --shadow: 0 14px 40px rgba(19, 50, 79, 0.10);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, Arial, sans-serif; background: linear-gradient(180deg, #eef4fb 0%, var(--bg) 100%); color: var(--ink); }
+    .wrap { max-width: 1380px; margin: 0 auto; padding: 32px 20px 60px; }
+    .hero { background: linear-gradient(135deg, #0f3b68, #1b74d1); color: white; padding: 28px; border-radius: 24px; box-shadow: var(--shadow); }
+    .hero h1 { margin: 0 0 10px; font-size: 34px; line-height: 1.15; }
+    .hero p { margin: 0; max-width: 980px; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.92); }
+    .hero .links { margin-top: 14px; font-size: 14px; }
+    .hero a { color: #d7ebff; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 22px 0; }
+    .stat { background: var(--panel); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+    .stat .label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+    .stat .value { margin-top: 8px; font-size: 32px; font-weight: 800; color: var(--blue); }
+    .toolbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin: 8px 0 18px; }
+    .toolbar p { margin: 0; color: var(--muted); }
+    .btn { appearance: none; border: 0; background: var(--blue); color: white; padding: 12px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow); }
+    .repo-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .repo-tab { appearance: none; border: 1px solid var(--line); background: white; color: var(--ink); padding: 10px 14px; border-radius: 999px; cursor: pointer; font-weight: 700; }
+    .repo-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+    .repo-panel { display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 24px; box-shadow: var(--shadow); }
+    .repo-panel.active { display: block; }
+    .repo-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--blue); font-weight: 800; }
+    .repo-header h2 { margin: 6px 0 8px; font-size: 28px; line-height: 1.2; }
+    .repo-source { margin: 0; color: var(--muted); font-size: 14px; }
+    .score-box { min-width: 240px; background: linear-gradient(180deg, #f8fbff, #edf5ff); border: 1px solid #cfe2ff; border-radius: 20px; padding: 18px; text-align: center; }
+    .score-main { font-size: 44px; font-weight: 900; color: var(--blue); line-height: 1; }
+    .score-main span { font-size: 22px; color: var(--muted); }
+    .score-sub { margin-top: 8px; font-size: 13px; color: var(--muted); }
+    .criteria-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .criterion-card { border-radius: 18px; padding: 16px; border: 1px solid var(--line); background: #fbfdff; }
+    .criterion-card.excellent { background: var(--green-soft); border-color: #b9e7cb; }
+    .criterion-card.good { background: var(--blue-soft); border-color: #c8defc; }
+    .criterion-card.limited { background: var(--yellow-soft); border-color: #f3d796; }
+    .criterion-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .criterion-title { font-weight: 800; }
+    .criterion-text { color: #334e68; line-height: 1.55; font-size: 14px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .badge.excellent, .chip.excellent { color: var(--green); background: var(--green-soft); }
+    .badge.good, .chip.good { color: var(--blue); background: var(--blue-soft); }
+    .badge.limited, .chip.limited { color: var(--yellow); background: var(--yellow-soft); }
+    .note { margin-top: 22px; background: white; border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; color: #30475e; box-shadow: var(--shadow); }
+    .note strong { color: var(--ink); }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 34, 56, 0.56); display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-backdrop.show { display: flex; }
+    .modal { width: min(1260px, 100%); max-height: 90vh; overflow: auto; background: white; border-radius: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.25); padding: 22px; }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .modal-head h3 { margin: 0; font-size: 24px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 14px; }
+    thead th { position: sticky; top: 0; background: white; z-index: 1; }
+    th:first-child { text-align: left; min-width: 280px; }
+    .center { text-align: center; }
+    .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 30px; border-radius: 999px; font-weight: 900; }
+    .legend { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 16px; }
+    .legend .badge { font-size: 13px; }
+    .footer { margin-top: 22px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    @media (max-width: 1024px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .criteria-grid { grid-template-columns: 1fr; }
+      .repo-header { flex-direction: column; }
+      .score-box { min-width: 0; width: 100%; }
+    }
+    @media (max-width: 640px) {
+      .stats { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 28px; }
+      .wrap { padding: 18px 12px 44px; }
+      .repo-header h2 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class='wrap'>
+    <section class='hero'>
+      <h1>Avaliação de Usabilidade – Repositórios de Dados de Pesquisa</h1>
+      <p>Infográfico reconstruído exclusivamente a partir da planilha validada pelo usuário, com dois ajustes solicitados explicitamente depois da validação: uso do nome CEDIA e reconhecimento da busca facetada de La Plata como equivalente ao caso de Rosário.</p>
+      <div class='links'>Fonte única: <a href='https://www.genspark.ai/api/files/s/I2MgHXlS' target='_blank' rel='noopener'>https://www.genspark.ai/api/files/s/I2MgHXlS</a></div>
+    </section>
+
+    <section class='stats'>
+      <div class='stat'><div class='label'>Repositórios avaliados</div><div class='value'>9</div></div>
+      <div class='stat'><div class='label'>Critérios por repositório</div><div class='value'>9</div></div>
+      <div class='stat'><div class='label'>Aderência média</div><div class='value'>8.9/9</div></div>
+      <div class='stat'><div class='label'>Com alguma ressalva</div><div class='value'>1</div></div>
+    </section>
+
+    <div class='toolbar'>
+      <p>Classificação derivada da redação da planilha validada: <strong>Excelente</strong> quando a evidência é direta, <strong>Bom</strong> quando a evidência é parcial mas favorável, e <strong>Limitado</strong> quando o texto não comprova DOI ou cobertura plena do critério.</p>
+      <button class='btn' id='openSummary'>Ver quadro comparativo geral</button>
+    </div>
+
+    <nav class='repo-tabs'>
+      <button class='repo-tab active' data-tab='repo-1'>Aleia</button> <button class='repo-tab' data-tab='repo-2'>Arca Dados</button> <button class='repo-tab' data-tab='repo-3'>CIMMYT Research Data &amp; Software Repository Network</button> <button class='repo-tab' data-tab='repo-4'>RDA UNR</button> <button class='repo-tab' data-tab='repo-5'>Repositorio de datos abiertos de investigación de Uruguay</button> <button class='repo-tab' data-tab='repo-6'>Repositório de Dados de Pesquisa da UDESC</button> <button class='repo-tab' data-tab='repo-7'>Repositório de Dados de Pesquisa da Unicamp</button> <button class='repo-tab' data-tab='repo-8'>Universidad Nacional de La Plata</button> <button class='repo-tab' data-tab='repo-9'>CEDIA</button>
+    </nav>
+
+    
+        <section id='repo-1' class='repo-panel active'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>Aleia</h2>
+              <p class='repo-source'>Referência na planilha: [1] Ibict - Aleia</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>9<span>/9</span></div>
+              <div class='score-sub'>Excelente: 9 · Bom: 0 · Limitado: 0</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Barra de busca central e busca avançada disponível.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Filtros por ano de publicação, autor, assunto e tipo de dado.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Apresenta</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Apresenta</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Logos institucionais do Ibict; design padrão Dataverse.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Suporte a Português, Inglês e Espanhol.</div>
+            </div>
+            
+          </div>
+        </section>
+         
+        <section id='repo-2' class='repo-panel'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>Arca Dados</h2>
+              <p class='repo-source'>Referência na planilha: [2] Fio Cruz</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>9<span>/9</span></div>
+              <div class='score-sub'>Excelente: 9 · Bom: 0 · Limitado: 0</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Busca simples e avançada disponíveis na interface.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Filtros por assunto (Medicina, Saúde, etc.) e tipo de arquivo.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Apresenta</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Apresenta</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Identidade visual forte da Fiocruz.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Disponível em Português, Inglês e Espanhol.</div>
+            </div>
+            
+          </div>
+        </section>
+         
+        <section id='repo-3' class='repo-panel'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>CIMMYT Research Data &amp; Software Repository Network</h2>
+              <p class='repo-source'>Referência na planilha: [3] CIMMYT</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>9<span>/9</span></div>
+              <div class='score-sub'>Excelente: 9 · Bom: 0 · Limitado: 0</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Barra de busca e opção de busca avançada.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Filtros por ano, nome do autor, assunto e cobertura geográfica.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Termos de licença customizados e CC0 1.0 visíveis.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Links para &#x27;User Guide&#x27; e &#x27;Support&#x27; disponíveis.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Logo institucional do CIMMYT e rede CGIAR.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Suporte a Inglês e Espanhol.</div>
+            </div>
+            
+          </div>
+        </section>
+         
+        <section id='repo-4' class='repo-panel'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>RDA UNR</h2>
+              <p class='repo-source'>Referência na planilha: [4] Universidade do Rosário</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>9<span>/9</span></div>
+              <div class='score-sub'>Excelente: 9 · Bom: 0 · Limitado: 0</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Barra de busca e busca avançada integradas.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Filtros por ano, nome do autor, assunto e termos de palavra-chave.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Apresenta</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Apresenta</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Identidade da Universidad Nacional de Rosario.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Suporte a Inglês e Espanhol.</div>
+            </div>
+            
+          </div>
+        </section>
+         
+        <section id='repo-5' class='repo-panel'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>Repositorio de datos abiertos de investigación de Uruguay</h2>
+              <p class='repo-source'>Referência na planilha: [5] Repositorio de datos abiertos de investigación de Uruguay (ANII)</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>9<span>/9</span></div>
+              <div class='score-sub'>Excelente: 6 · Bom: 3 · Limitado: 0</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Barra de busca</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Filtros por ano de publicação, área de conhecimento e licença.</div>
+            </div>
+            
+
+            <div class='criterion-card good'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge good'>🟦 Bom</span>
+              </div>
+              <div class='criterion-text'>Informações sobre a REDATA disponíveis em &#x27;Sobre REDATA&#x27;.</div>
+            </div>
+            
+
+            <div class='criterion-card good'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge good'>🟦 Bom</span>
+              </div>
+              <div class='criterion-text'>Suporte disponível via link de contato.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Identidade institucional do repositório de dados do Uruguai.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card good'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge good'>🟦 Bom</span>
+              </div>
+              <div class='criterion-text'>Interface em Espanhol.</div>
+            </div>
+            
+          </div>
+        </section>
+         
+        <section id='repo-6' class='repo-panel'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>Repositório de Dados de Pesquisa da UDESC</h2>
+              <p class='repo-source'>Referência na planilha: [6] UDESC</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>8<span>/9</span></div>
+              <div class='score-sub'>Excelente: 7 · Bom: 1 · Limitado: 1</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Barra de busca e busca avançada disponíveis.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Filtros por ano, autor, assunto e categoria de dataverse.</div>
+            </div>
+            
+
+            <div class='criterion-card good'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge good'>🟦 Bom</span>
+              </div>
+              <div class='criterion-text'>Menção a direitos reservados e contato para suporte.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Links para &#x27;User Guide&#x27; e &#x27;Support&#x27; presentes.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Identidade institucional da UDESC.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card limited'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge limited'>⚠️ Limitado</span>
+              </div>
+              <div class='criterion-text'>Utiliza identificadores persistentes do Dataverse</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Suporte a Inglês e Português.</div>
+            </div>
+            
+          </div>
+        </section>
+         
+        <section id='repo-7' class='repo-panel'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>Repositório de Dados de Pesquisa da Unicamp</h2>
+              <p class='repo-source'>Referência na planilha: [7] Unicamp</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>9<span>/9</span></div>
+              <div class='score-sub'>Excelente: 9 · Bom: 0 · Limitado: 0</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Barra de busca central e busca avançada.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Filtros por ano, autor, assunto, afiliação e agência de fomento.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Informações sobre depósito obrigatório e obrigações institucionais.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Links para &#x27;About&#x27;, &#x27;User Guide&#x27; e &#x27;Support&#x27; no menu.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Cores e logo da Unicamp (Universidade Estadual de Campinas).</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Suporte a Inglês, Espanhol, Francês e Português.</div>
+            </div>
+            
+          </div>
+        </section>
+         
+        <section id='repo-8' class='repo-panel'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>Universidad Nacional de La Plata</h2>
+              <p class='repo-source'>Referência na planilha: [8] Universidad Nacional de La Plata</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>9<span>/9</span></div>
+              <div class='score-sub'>Excelente: 8 · Bom: 1 · Limitado: 0</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Barra de busca disponível no menu de navegação.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Busca facetada confirmada por ajuste do usuário; tratar como equivalente ao caso de Rosário.</div>
+            </div>
+            
+
+            <div class='criterion-card good'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge good'>🟦 Bom</span>
+              </div>
+              <div class='criterion-text'>Seção &#x27;Acerca de&#x27; e área de usuário.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Guia de usuário acessível na página inicial.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Logo e identidade da Universidad Nacional de La Plata.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Suporte a identificadores persistentes via Dataverse e DOI.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Suporte a Espanhol e Inglês.</div>
+            </div>
+            
+          </div>
+        </section>
+         
+        <section id='repo-9' class='repo-panel'>
+          <div class='repo-header'>
+            <div>
+              <div class='eyebrow'>Fonte validada</div>
+              <h2>CEDIA</h2>
+              <p class='repo-source'>Referência na planilha: [9] CEDIA</p>
+            </div>
+            <div class='score-box'>
+              <div class='score-main'>9<span>/9</span></div>
+              <div class='score-sub'>Excelente: 7 · Bom: 2 · Limitado: 0</div>
+            </div>
+          </div>
+          <div class='criteria-grid'>
+            
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Mecanismo de Busca</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Barra de busca (&#x27;Buscar&#x27;) disponível na interface.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Navegação Facetada</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Filtros por ano de publicação, autor, assunto e tipo de dado.</div>
+            </div>
+            
+
+            <div class='criterion-card good'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Políticas de Uso</span>
+                <span class='badge good'>🟦 Bom</span>
+              </div>
+              <div class='criterion-text'>Objetivos de conservação e difusão declarados.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Documentação de Apoio</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Links para &#x27;About&#x27;, &#x27;User Guide&#x27; e &#x27;Support&#x27; no menu.</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identidade Visual</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Identidade da CEDIA (Corporación Ecuatoriana).</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Citação de Dados</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Geração automática de citação</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Metadados Prévios</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card excellent'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Identificadores (DOI)</span>
+                <span class='badge excellent'>✅ Excelente</span>
+              </div>
+              <div class='criterion-text'>Sim</div>
+            </div>
+            
+
+            <div class='criterion-card good'>
+              <div class='criterion-head'>
+                <span class='criterion-title'>Internacionalização</span>
+                <span class='badge good'>🟦 Bom</span>
+              </div>
+              <div class='criterion-text'>Interface em Espanhol.</div>
+            </div>
+            
+          </div>
+        </section>
+        
+
+    <section class='note'>
+      <strong>Nota metodológica.</strong> Este arquivo usa somente a planilha validada <a href='https://www.genspark.ai/api/files/s/I2MgHXlS' target='_blank' rel='noopener'>Análise de Usabilidade de Repositórios de Dados de Pesquisa (1).xlsx</a>, com dois ajustes textuais e interpretativos fornecidos pelo usuário após a validação: <strong>uso do nome CEDIA</strong> e <strong>busca facetada de La Plata tratada como presente</strong>. O placar numérico considera como atendidos os critérios classificados como <strong>Excelente</strong> ou <strong>Bom</strong>; itens <strong>Limitado</strong> são tratados como ponto de atenção.</section>
+
+    <div class='footer'>
+      Arquivo gerado automaticamente em HTML para navegação local. Fonte única utilizada: <a href='https://www.genspark.ai/api/files/s/I2MgHXlS' target='_blank' rel='noopener'>https://www.genspark.ai/api/files/s/I2MgHXlS</a>.
+    </div>
+  </div>
+
+  <div class='modal-backdrop' id='summaryModal'>
+    <div class='modal'>
+      <div class='modal-head'>
+        <h3>Quadro comparativo geral</h3>
+        <button class='btn' id='closeSummary'>Fechar</button>
+      </div>
+      <div class='legend'>
+        <span class='badge excellent'>✅ Excelente</span>
+        <span class='badge good'>🟦 Bom</span>
+        <span class='badge limited'>⚠️ Limitado</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Repositório</th>
+            <th class='center' title='Mecanismo de Busca'>Busca</th>
+            <th class='center' title='Navegação Facetada'>Facetada</th>
+            <th class='center' title='Políticas de Uso'>Políticas</th>
+            <th class='center' title='Documentação de Apoio'>Docs</th>
+            <th class='center' title='Identidade Visual'>Visual</th>
+            <th class='center' title='Citação de Dados'>Citação</th>
+            <th class='center' title='Metadados Prévios'>Metadados</th>
+            <th class='center' title='Identificadores (DOI)'>DOI</th>
+            <th class='center' title='Internacionalização'>Intl.</th>
+            <th class='center'>Placar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope='row'>Aleia</th><td class='center'><span class='chip excellent' title='Barra de busca central e busca avançada disponível.'>✅</span></td><td class='center'><span class='chip excellent' title='Filtros por ano de publicação, autor, assunto e tipo de dado.'>✅</span></td><td class='center'><span class='chip excellent' title='Apresenta'>✅</span></td><td class='center'><span class='chip excellent' title='Apresenta'>✅</span></td><td class='center'><span class='chip excellent' title='Logos institucionais do Ibict; design padrão Dataverse.'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Suporte a Português, Inglês e Espanhol.'>✅</span></td><td class='center'><strong>9/9</strong></td></tr>
+<tr><th scope='row'>Arca Dados</th><td class='center'><span class='chip excellent' title='Busca simples e avançada disponíveis na interface.'>✅</span></td><td class='center'><span class='chip excellent' title='Filtros por assunto (Medicina, Saúde, etc.) e tipo de arquivo.'>✅</span></td><td class='center'><span class='chip excellent' title='Apresenta'>✅</span></td><td class='center'><span class='chip excellent' title='Apresenta'>✅</span></td><td class='center'><span class='chip excellent' title='Identidade visual forte da Fiocruz.'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Disponível em Português, Inglês e Espanhol.'>✅</span></td><td class='center'><strong>9/9</strong></td></tr>
+<tr><th scope='row'>CIMMYT Research Data &amp; Software Repository Network</th><td class='center'><span class='chip excellent' title='Barra de busca e opção de busca avançada.'>✅</span></td><td class='center'><span class='chip excellent' title='Filtros por ano, nome do autor, assunto e cobertura geográfica.'>✅</span></td><td class='center'><span class='chip excellent' title='Termos de licença customizados e CC0 1.0 visíveis.'>✅</span></td><td class='center'><span class='chip excellent' title='Links para &#x27;User Guide&#x27; e &#x27;Support&#x27; disponíveis.'>✅</span></td><td class='center'><span class='chip excellent' title='Logo institucional do CIMMYT e rede CGIAR.'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Suporte a Inglês e Espanhol.'>✅</span></td><td class='center'><strong>9/9</strong></td></tr>
+<tr><th scope='row'>RDA UNR</th><td class='center'><span class='chip excellent' title='Barra de busca e busca avançada integradas.'>✅</span></td><td class='center'><span class='chip excellent' title='Filtros por ano, nome do autor, assunto e termos de palavra-chave.'>✅</span></td><td class='center'><span class='chip excellent' title='Apresenta'>✅</span></td><td class='center'><span class='chip excellent' title='Apresenta'>✅</span></td><td class='center'><span class='chip excellent' title='Identidade da Universidad Nacional de Rosario.'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Suporte a Inglês e Espanhol.'>✅</span></td><td class='center'><strong>9/9</strong></td></tr>
+<tr><th scope='row'>Repositorio de datos abiertos de investigación de Uruguay</th><td class='center'><span class='chip excellent' title='Barra de busca'>✅</span></td><td class='center'><span class='chip excellent' title='Filtros por ano de publicação, área de conhecimento e licença.'>✅</span></td><td class='center'><span class='chip good' title='Informações sobre a REDATA disponíveis em &#x27;Sobre REDATA&#x27;.'>🟦</span></td><td class='center'><span class='chip good' title='Suporte disponível via link de contato.'>🟦</span></td><td class='center'><span class='chip excellent' title='Identidade institucional do repositório de dados do Uruguai.'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip good' title='Interface em Espanhol.'>🟦</span></td><td class='center'><strong>9/9</strong></td></tr>
+<tr><th scope='row'>Repositório de Dados de Pesquisa da UDESC</th><td class='center'><span class='chip excellent' title='Barra de busca e busca avançada disponíveis.'>✅</span></td><td class='center'><span class='chip excellent' title='Filtros por ano, autor, assunto e categoria de dataverse.'>✅</span></td><td class='center'><span class='chip good' title='Menção a direitos reservados e contato para suporte.'>🟦</span></td><td class='center'><span class='chip excellent' title='Links para &#x27;User Guide&#x27; e &#x27;Support&#x27; presentes.'>✅</span></td><td class='center'><span class='chip excellent' title='Identidade institucional da UDESC.'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip limited' title='Utiliza identificadores persistentes do Dataverse'>⚠️</span></td><td class='center'><span class='chip excellent' title='Suporte a Inglês e Português.'>✅</span></td><td class='center'><strong>8/9</strong></td></tr>
+<tr><th scope='row'>Repositório de Dados de Pesquisa da Unicamp</th><td class='center'><span class='chip excellent' title='Barra de busca central e busca avançada.'>✅</span></td><td class='center'><span class='chip excellent' title='Filtros por ano, autor, assunto, afiliação e agência de fomento.'>✅</span></td><td class='center'><span class='chip excellent' title='Informações sobre depósito obrigatório e obrigações institucionais.'>✅</span></td><td class='center'><span class='chip excellent' title='Links para &#x27;About&#x27;, &#x27;User Guide&#x27; e &#x27;Support&#x27; no menu.'>✅</span></td><td class='center'><span class='chip excellent' title='Cores e logo da Unicamp (Universidade Estadual de Campinas).'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Suporte a Inglês, Espanhol, Francês e Português.'>✅</span></td><td class='center'><strong>9/9</strong></td></tr>
+<tr><th scope='row'>Universidad Nacional de La Plata</th><td class='center'><span class='chip excellent' title='Barra de busca disponível no menu de navegação.'>✅</span></td><td class='center'><span class='chip excellent' title='Busca facetada confirmada por ajuste do usuário; tratar como equivalente ao caso de Rosário.'>✅</span></td><td class='center'><span class='chip good' title='Seção &#x27;Acerca de&#x27; e área de usuário.'>🟦</span></td><td class='center'><span class='chip excellent' title='Guia de usuário acessível na página inicial.'>✅</span></td><td class='center'><span class='chip excellent' title='Logo e identidade da Universidad Nacional de La Plata.'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Suporte a identificadores persistentes via Dataverse e DOI.'>✅</span></td><td class='center'><span class='chip excellent' title='Suporte a Espanhol e Inglês.'>✅</span></td><td class='center'><strong>9/9</strong></td></tr>
+<tr><th scope='row'>CEDIA</th><td class='center'><span class='chip excellent' title='Barra de busca (&#x27;Buscar&#x27;) disponível na interface.'>✅</span></td><td class='center'><span class='chip excellent' title='Filtros por ano de publicação, autor, assunto e tipo de dado.'>✅</span></td><td class='center'><span class='chip good' title='Objetivos de conservação e difusão declarados.'>🟦</span></td><td class='center'><span class='chip excellent' title='Links para &#x27;About&#x27;, &#x27;User Guide&#x27; e &#x27;Support&#x27; no menu.'>✅</span></td><td class='center'><span class='chip excellent' title='Identidade da CEDIA (Corporación Ecuatoriana).'>✅</span></td><td class='center'><span class='chip excellent' title='Geração automática de citação'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip excellent' title='Sim'>✅</span></td><td class='center'><span class='chip good' title='Interface em Espanhol.'>🟦</span></td><td class='center'><strong>9/9</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const tabs = Array.from(document.querySelectorAll('.repo-tab'));
+    const panels = Array.from(document.querySelectorAll('.repo-panel'));
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const panel = document.getElementById(btn.dataset.tab);
+        if (panel) panel.classList.add('active');
+      });
+    });
+    const modal = document.getElementById('summaryModal');
+    document.getElementById('openSummary').addEventListener('click', () => modal.classList.add('show'));
+    document.getElementById('closeSummary').addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.classList.remove('show'); });
+  </script>
+</body>
+</html>
